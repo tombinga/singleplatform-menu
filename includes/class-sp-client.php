@@ -9,13 +9,31 @@ class Client
 {
     public static function get_menus($location_id)
     {
-        // Fixture mode (admins only) to debug rendering without remote calls.
-        if (is_admin() && current_user_can('manage_options') && Settings::use_fixture()) {
+        // Fixture mode: short-circuit remote calls when enabled in settings.
+        if (Settings::use_fixture()) {
             $raw = Settings::fixture_json();
+            if ($raw === '') {
+                return new \WP_Error('sp_fixture_empty', __('Fixture JSON is empty.', 'sp-menu'));
+            }
+
             $json = json_decode($raw, true);
-            if (is_array($json) && isset($json['data']['menus']) && is_array($json['data']['menus'])) {
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return new \WP_Error('sp_fixture_invalid', sprintf(__('Fixture JSON decode error: %s', 'sp-menu'), json_last_error_msg()));
+            }
+
+            if (isset($json['data']['menus']) && is_array($json['data']['menus'])) {
                 return $json['data']['menus'];
             }
+
+            if (isset($json['menus']) && is_array($json['menus'])) {
+                return $json['menus'];
+            }
+
+            if (is_array($json) && array_keys($json) === range(0, count($json) - 1)) {
+                return $json;
+            }
+
+            return new \WP_Error('sp_fixture_invalid', __('Fixture JSON must contain a menus array.', 'sp-menu'));
         }
 
         $base = trailingslashit(Settings::api_base());

@@ -23,9 +23,15 @@ class Block {
             }
         }
 
+        $use_fixture = Settings::use_fixture() && Settings::fixture_json() !== '';
+
         $location_id = isset($fields['location_id']) ? sanitize_text_field((string) $fields['location_id']) : '';
-        if ($location_id === '') {
+        if ($location_id === '' && !$use_fixture) {
             return self::wrap_notice(esc_html__('Select a Location ID to display a menu.', 'sp-menu'));
+        }
+
+        if ($use_fixture && $location_id === '') {
+            $location_id = '__fixture__';
         }
 
         $category_filter = array();
@@ -62,7 +68,9 @@ class Block {
             );
             $data = Normalizer::to_view_model($menus, $select);
             Cache::set($cache_key, $data, $ttl);
-            Cache::index_key($location_id, $cache_key);
+            if ($location_id !== '__fixture__') {
+                Cache::index_key($location_id, $cache_key);
+            }
         }
 
         $view = array(
