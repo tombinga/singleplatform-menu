@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "prg/singleplatform-menu",
+  "title": "Restaurant Menu (SinglePlatform)",
+  "category": "widgets",
+  "icon": "food",
+  "description": "Server-rendered SinglePlatform menu.",
+  "keywords": [
+    "menu",
+    "restaurant",
+    "singleplatform"
+  ],
+  "supports": {
+    "anchor": true,
+    "align": ["wide", "full"],
+    "html": false
+  },
+  "style": "sp-menu/style",
+  "editorStyle": "sp-menu/editor",
+  "textdomain": "sp-menu",
+  "acf": {
+    "mode": "preview",
+    "renderTemplate": "template.php"
+  }
+}

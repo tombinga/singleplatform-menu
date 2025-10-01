@@ -1,0 +1,11 @@
+.sp-menu{}
+.sp-menu__category{margin-block:1rem;border-top:1px solid currentColor;padding-top:.75rem}
+.sp-menu__toggle{font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
+.sp-menu__items{list-style:none;padding-left:0;margin:.5rem 0 0}
+.sp-menu__item{padding:.25rem 0}
+.sp-menu__row{display:flex;justify-content:space-between;gap:.75rem;align-items:baseline}
+.sp-menu__item-desc{font-size:.9em;opacity:.85;margin-top:.25rem}
+.sp-menu__tags{display:block;opacity:.75;margin-top:.125rem}
+.sp-menu__additions{list-style:none;margin:.25rem 0 0;padding:0}
+.sp-menu__additions li{display:flex;justify-content:space-between;gap:.5rem}
+.sp_menu__price{white-space:nowrap}

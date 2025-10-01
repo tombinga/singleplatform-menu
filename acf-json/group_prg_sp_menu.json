@@ -1,0 +1,92 @@
+{
+  "key": "group_prg_sp_menu",
+  "title": "SinglePlatform Menu Block",
+  "fields": [
+    {
+      "key": "field_prg_sp_location_id",
+      "label": "Location ID",
+      "name": "location_id",
+      "type": "text",
+      "required": 1
+    },
+    {
+      "key": "field_prg_sp_menu_name",
+      "label": "Menu Name",
+      "name": "menu_name",
+      "type": "text",
+      "instructions": "Exact menu name (leave blank for first menu)."
+    },
+    {
+      "key": "field_prg_sp_category_filter",
+      "label": "Category Filter",
+      "name": "category_filter",
+      "type": "repeater",
+      "min": 0,
+      "layout": "table",
+      "sub_fields": [
+        {
+          "key": "field_prg_sp_category_name",
+          "label": "Name",
+          "name": "name",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "field_prg_sp_show_prices",
+      "label": "Show Prices",
+      "name": "show_prices",
+      "type": "true_false",
+      "default_value": 1
+    },
+    {
+      "key": "field_prg_sp_currency",
+      "label": "Currency",
+      "name": "currency",
+      "type": "select",
+      "choices": {
+        "USD": "USD",
+        "EUR": "EUR",
+        "GBP": "GBP",
+        "JPY": "JPY"
+      },
+      "default_value": "USD",
+      "return_format": "value",
+      "ui": 1,
+      "ajax": 0,
+      "allow_null": 0,
+      "multiple": 0
+    },
+    {
+      "key": "field_prg_sp_cache_ttl",
+      "label": "Cache TTL (seconds)",
+      "name": "cache_ttl",
+      "type": "number",
+      "min": 60,
+      "max": 86400,
+      "step": 1
+    },
+    {
+      "key": "field_prg_sp_expand_behavior",
+      "label": "Expand Behavior",
+      "name": "expand_behavior",
+      "type": "select",
+      "choices": {
+        "collapsed": "Collapsed",
+        "expanded": "Expanded"
+      },
+      "default_value": "collapsed"
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "block",
+        "operator": "==",
+        "value": "acf/prg-singleplatform-menu"
+      }
+    ]
+  ],
+  "active": true,
+  "description": "Fields for the SinglePlatform Menu ACF block."
+}
