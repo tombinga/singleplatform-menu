@@ -47,6 +47,10 @@ class Block {
         $currency = isset($fields['currency']) ? sanitize_text_field((string) $fields['currency']) : 'USD';
         $ttl = isset($fields['cache_ttl']) ? sanitize_ttl($fields['cache_ttl']) : Settings::default_ttl();
         $expanded = isset($fields['expand_behavior']) && $fields['expand_behavior'] === 'expanded';
+        $category_display = isset($fields['category_display']) ? sanitize_text_field((string) $fields['category_display']) : 'accordion';
+        if (!in_array($category_display, array('accordion', 'expanded'), true)) {
+            $category_display = 'accordion';
+        }
         $layout = isset($fields['layout']) ? sanitize_text_field((string) $fields['layout']) : 'accordion';
         if (!in_array($layout, array('accordion', 'tabs'), true)) {
             $layout = 'accordion';
@@ -83,6 +87,7 @@ class Block {
             'currency'    => $currency,
             'expanded'    => $expanded,
             'layout'      => $layout,
+            'category_display' => $category_display,
         );
 
         ob_start();

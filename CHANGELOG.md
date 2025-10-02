@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Layout selector with a new Tabbed layout for menus, including accessible tablist and keyboard support (render template, JS behavior, CSS styles).
+- Category Display option to disable category toggling (always expanded); items are always visible and no toggle buttons are rendered (block view data, render template, JS binding).
+
 ### Changed
 - Display all available menus by default when no `menu_name` is selected in the SinglePlatform block (`includes/class-sp-normalizer.php`, `blocks/singleplatform-menu/render.php`, `blocks/singleplatform-menu/style.css`).
 

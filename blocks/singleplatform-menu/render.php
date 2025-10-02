@@ -12,9 +12,10 @@ if (empty($menus) && isset($data['menuName'])) {
 $expanded    = !empty($view['expanded']);
 $show_prices = !empty($view['show_prices']);
 $layout      = isset($view['layout']) && in_array($view['layout'], array('accordion', 'tabs'), true) ? $view['layout'] : 'accordion';
+$cat_display = isset($view['category_display']) && in_array($view['category_display'], array('accordion','expanded'), true) ? $view['category_display'] : 'accordion';
 
 $instance = function_exists('wp_unique_id') ? wp_unique_id('sp-menu-') : uniqid('sp-menu-');
-$wrapper_class = 'sp-menu sp-menu--layout-' . $layout;
+$wrapper_class = 'sp-menu sp-menu--layout-' . $layout . ' sp-menu--cat-' . $cat_display;
 $attrs = function_exists('get_block_wrapper_attributes')
     ? get_block_wrapper_attributes(array('class' => $wrapper_class))
     : 'class="' . esc_attr($wrapper_class) . '"';
@@ -73,10 +74,15 @@ $menu_count = count($menus);
             $cid = $panel_id . '-cat-' . (int) $i;
             ?>
             <div class="sp-menu__category">
-              <button type="button" class="sp-menu__toggle" aria-controls="<?php echo esc_attr($cid); ?>" aria-expanded="<?php echo $expanded ? 'true' : 'false'; ?>">
-                <?php echo esc_html($cat['name']); ?>
-              </button>
-              <ul id="<?php echo esc_attr($cid); ?>" class="sp-menu__items"<?php echo $expanded ? '' : ' hidden'; ?>>
+              <?php if ($cat_display === 'accordion'): ?>
+                <button type="button" class="sp-menu__toggle" aria-controls="<?php echo esc_attr($cid); ?>" aria-expanded="<?php echo $expanded ? 'true' : 'false'; ?>">
+                  <?php echo esc_html($cat['name']); ?>
+                </button>
+                <ul id="<?php echo esc_attr($cid); ?>" class="sp-menu__items"<?php echo $expanded ? '' : ' hidden'; ?>>
+              <?php else: ?>
+                <div class="sp-menu__category-name"><?php echo esc_html($cat['name']); ?></div>
+                <ul id="<?php echo esc_attr($cid); ?>" class="sp-menu__items">
+              <?php endif; ?>
                 <?php if (!empty($cat['items'])): ?>
                   <?php foreach ($cat['items'] as $item): ?>
                     <li class="sp-menu__item">
@@ -202,14 +208,16 @@ $menu_count = count($menus);
     }
   }
 
-  root.addEventListener('click', function(e){
-    var btn = e.target.closest('.sp-menu__toggle');
-    if (!btn) return;
-    var id = btn.getAttribute('aria-controls');
-    var panel = root.querySelector('#' + id);
-    var expanded = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-    if (expanded) { panel.setAttribute('hidden', ''); } else { panel.removeAttribute('hidden'); }
-  });
+  if (root.classList.contains('sp-menu--cat-accordion')) {
+    root.addEventListener('click', function(e){
+      var btn = e.target.closest('.sp-menu__toggle');
+      if (!btn) return;
+      var id = btn.getAttribute('aria-controls');
+      var panel = root.querySelector('#' + id);
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+      if (expanded) { panel.setAttribute('hidden', ''); } else { panel.removeAttribute('hidden'); }
+    });
+  }
 })();
 </script>
