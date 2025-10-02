@@ -76,6 +76,18 @@
         "expanded": "Expanded"
       },
       "default_value": "collapsed"
+    },
+    {
+      "key": "field_prg_sp_layout",
+      "label": "Layout",
+      "name": "layout",
+      "type": "select",
+      "choices": {
+        "accordion": "Accordion",
+        "tabs": "Tabs"
+      },
+      "default_value": "accordion",
+      "ui": 1
     }
   ],
   "location": [
@@ -88,5 +100,6 @@
     ]
   ],
   "active": true,
-  "description": "Fields for the SinglePlatform Menu ACF block."
+  "description": "Fields for the SinglePlatform Menu ACF block.",
+  "modified": 1759422895
 }

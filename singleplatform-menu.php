@@ -15,13 +15,10 @@ define('PRG_SP_MENU_VERSION', '0.3.0');
 define('PRG_SP_MENU_DIR', plugin_dir_path(__FILE__));
 define('PRG_SP_MENU_URL', plugin_dir_url(__FILE__));
 
-// Make ACF JSON in this plugin visible in the admin (Sync) and save back here (dev).
+// Make ACF JSON in this plugin visible in the admin (Sync) only.
 add_filter('acf/settings/load_json', function ($paths) {
     $paths[] = PRG_SP_MENU_DIR . 'acf-json';
     return $paths;
-});
-add_filter('acf/settings/save_json', function ($path) {
-    return PRG_SP_MENU_DIR . 'acf-json';
 });
 
 require_once PRG_SP_MENU_DIR . 'includes/helpers-sanitize.php';
