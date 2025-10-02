@@ -9,37 +9,80 @@ class Normalizer {
         $category_whitelist = isset($select['category_filter']) && is_array($select['category_filter']) ? $select['category_filter'] : array();
         $currency_override = isset($select['currency_override']) ? (string) $select['currency_override'] : '';
 
-        $menu = null;
-        foreach ($menus as $m) {
-            if (!is_array($m)) continue;
-            if ($menu_name !== '' && isset($m['name']) && strcasecmp($m['name'], $menu_name) == 0) { $menu = $m; break; }
-            if ($menu === null) $menu = $m;
-        }
-        if (!$menu) {
-            return array('locationName' => '', 'menuName' => '', 'categories' => array(), 'footnote' => '', 'attribution' => array(), 'currency' => 'USD');
+        if ($menu_name !== '') {
+            $match = self::find_menu($menus, $menu_name);
+            if ($match === null) {
+                $match = self::first_menu($menus);
+            }
+            $single = $match ? self::menu_to_view($match, $category_whitelist, $currency_override) : self::empty_menu_view();
+            return array('menus' => $single ? array($single) : array());
         }
 
-        $currency = $currency_override !== '' ? strtoupper(sanitize_text_field($currency_override))
-                                              : (isset($menu['currency']) ? strtoupper((string) $menu['currency']) : 'USD');
+        $views = array();
+        foreach ($menus as $menu) {
+            if (!is_array($menu)) {
+                continue;
+            }
+            $views[] = self::menu_to_view($menu, $category_whitelist, $currency_override);
+        }
+
+        if (empty($views)) {
+            $views[] = self::empty_menu_view();
+        }
+
+        return array('menus' => $views);
+    }
+
+    private static function find_menu(array $menus, string $menu_name = '') {
+        foreach ($menus as $menu) {
+            if (!is_array($menu)) {
+                continue;
+            }
+            if ($menu_name !== '' && isset($menu['name']) && strcasecmp($menu['name'], $menu_name) === 0) {
+                return $menu;
+            }
+        }
+
+        return null;
+    }
+
+    private static function first_menu(array $menus) {
+        foreach ($menus as $menu) {
+            if (is_array($menu)) {
+                return $menu;
+            }
+        }
+
+        return null;
+    }
+
+    private static function menu_to_view(array $menu, array $category_whitelist, string $currency_override) {
+        $currency = $currency_override !== ''
+            ? strtoupper(sanitize_text_field($currency_override))
+            : (isset($menu['currency']) ? strtoupper((string) $menu['currency']) : 'USD');
 
         $categories = array();
         $sections = isset($menu['sections']) && is_array($menu['sections']) ? $menu['sections'] : array();
         foreach ($sections as $section) {
             $sec_name = isset($section['name']) ? sanitize_text_field((string) $section['name']) : '';
-            if ($sec_name === '') continue;
-            if (!empty($category_whitelist) && !in_array($sec_name, $category_whitelist, true)) continue;
+            if ($sec_name === '') {
+                continue;
+            }
+            if (!empty($category_whitelist) && !in_array($sec_name, $category_whitelist, true)) {
+                continue;
+            }
 
             $items = array();
             $raw_items = isset($section['items']) && is_array($section['items']) ? $section['items'] : array();
             foreach ($raw_items as $it) {
                 $items[] = array(
-                    'name'     => isset($it['name']) ? sanitize_text_field((string) $it['name']) : '',
-                    'desc'     => isset($it['description']) ? wp_kses_post((string) $it['description']) : '',
-                    'price'    => self::first_price_min($it),
-                    'market'   => self::is_market_price($it),
-                    'currency' => $currency,
-                    'tags'     => self::attribute_tags($it),
-                    'additions'=> self::additions($it, $currency),
+                    'name'      => isset($it['name']) ? sanitize_text_field((string) $it['name']) : '',
+                    'desc'      => isset($it['description']) ? wp_kses_post((string) $it['description']) : '',
+                    'price'     => self::first_price_min($it),
+                    'market'    => self::is_market_price($it),
+                    'currency'  => $currency,
+                    'tags'      => self::attribute_tags($it),
+                    'additions' => self::additions($it, $currency),
                 );
             }
 
@@ -64,6 +107,17 @@ class Normalizer {
             'footnote'     => isset($menu['footnote']) ? wp_kses_post((string) $menu['footnote']) : '',
             'attribution'  => $attrib,
             'currency'     => $currency,
+        );
+    }
+
+    private static function empty_menu_view() {
+        return array(
+            'locationName' => '',
+            'menuName'     => '',
+            'categories'   => array(),
+            'footnote'     => '',
+            'attribution'  => array(),
+            'currency'     => 'USD',
         );
     }
 

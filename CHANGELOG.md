@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Display all available menus by default when no `menu_name` is selected in the SinglePlatform block (`includes/class-sp-normalizer.php`, `blocks/singleplatform-menu/render.php`, `blocks/singleplatform-menu/style.css`).
+
 ## [0.3.0] - 2025-10-01
 
 ### Changed
