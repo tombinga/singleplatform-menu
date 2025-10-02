@@ -13,9 +13,12 @@ $expanded    = !empty($view['expanded']);
 $show_prices = !empty($view['show_prices']);
 $layout      = isset($view['layout']) && in_array($view['layout'], array('accordion', 'tabs'), true) ? $view['layout'] : 'accordion';
 $cat_display = isset($view['category_display']) && in_array($view['category_display'], array('accordion','expanded'), true) ? $view['category_display'] : 'accordion';
+$nutrition_visibility = isset($view['nutrition_visibility']) && in_array($view['nutrition_visibility'], array('hide','show'), true) ? $view['nutrition_visibility'] : 'hide';
+$labels_visibility = isset($view['labels_visibility']) && in_array($view['labels_visibility'], array('show','hide'), true) ? $view['labels_visibility'] : 'show';
+$item_columns = isset($view['item_columns']) && in_array((string)$view['item_columns'], array('1','2'), true) ? (string)$view['item_columns'] : '1';
 
 $instance = function_exists('wp_unique_id') ? wp_unique_id('sp-menu-') : uniqid('sp-menu-');
-$wrapper_class = 'sp-menu sp-menu--layout-' . $layout . ' sp-menu--cat-' . $cat_display;
+$wrapper_class = 'sp-menu sp-menu--layout-' . $layout . ' sp-menu--cat-' . $cat_display . ' sp-menu--cols-' . $item_columns;
 $attrs = function_exists('get_block_wrapper_attributes')
     ? get_block_wrapper_attributes(array('class' => $wrapper_class))
     : 'class="' . esc_attr($wrapper_class) . '"';
@@ -101,12 +104,29 @@ $menu_count = count($menus);
                         <?php endif; ?>
                       </div>
 
-                      <?php if (!empty($item['tags'])): ?>
+                      <?php if ($labels_visibility === 'show' && !empty($item['tags'])): ?>
                         <small class="sp-menu__tags"><?php echo esc_html(implode(' • ', $item['tags'])); ?></small>
                       <?php endif; ?>
 
                       <?php if (!empty($item['desc'])): ?>
                         <div class="sp-menu__item-desc"><?php echo wp_kses_post($item['desc']); ?></div>
+                      <?php endif; ?>
+
+                      <?php if ($nutrition_visibility === 'show' && !empty($item['nutrition']) && is_array($item['nutrition'])): ?>
+                        <div class="sp-menu__nutrition">
+                          <dl class="sp-menu__nutrition-list">
+                            <?php foreach ($item['nutrition'] as $n):
+                              $n_label = isset($n['label']) ? $n['label'] : '';
+                              $n_value = isset($n['value']) ? $n['value'] : '';
+                              if ($n_label === '' && $n_value === '') continue;
+                            ?>
+                              <div class="sp-menu__nutrition-row">
+                                <dt class="sp-menu__nutrition-label"><?php echo esc_html($n_label); ?></dt>
+                                <dd class="sp-menu__nutrition-value"><?php echo esc_html($n_value); ?></dd>
+                              </div>
+                            <?php endforeach; ?>
+                          </dl>
+                        </div>
                       <?php endif; ?>
 
                       <?php if (!empty($item['additions'])): ?>
@@ -137,13 +157,6 @@ $menu_count = count($menus);
           <p class="sp-menu__footnote"><small><?php echo wp_kses_post($menu['footnote']); ?></small></p>
         <?php endif; ?>
 
-        <?php if (!empty($menu['attribution']['img'])): ?>
-          <p class="sp-menu__attrib">
-            <a href="<?php echo esc_url($menu['attribution']['href']); ?>" rel="nofollow noopener" target="_blank">
-              <img src="<?php echo esc_url($menu['attribution']['img']); ?>" alt="<?php echo esc_attr__('Provided by SinglePlatform', 'sp-menu'); ?>" loading="lazy" />
-            </a>
-          </p>
-        <?php endif; ?>
       </article>
     <?php endforeach; ?>
   <?php else: ?>

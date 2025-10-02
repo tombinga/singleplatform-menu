@@ -56,6 +56,21 @@ class Block {
             $layout = 'accordion';
         }
 
+        $nutrition_visibility = isset($fields['nutrition_visibility']) ? sanitize_text_field((string) $fields['nutrition_visibility']) : 'hide';
+        if (!in_array($nutrition_visibility, array('hide', 'show'), true)) {
+            $nutrition_visibility = 'hide';
+        }
+
+        $labels_visibility = isset($fields['labels_visibility']) ? sanitize_text_field((string) $fields['labels_visibility']) : 'show';
+        if (!in_array($labels_visibility, array('show', 'hide'), true)) {
+            $labels_visibility = 'show';
+        }
+
+        $item_columns = isset($fields['item_columns']) ? sanitize_text_field((string) $fields['item_columns']) : '1';
+        if (!in_array($item_columns, array('1','2'), true)) {
+            $item_columns = '1';
+        }
+
         $cache_key = Cache::key($location_id, array(
             'menu_name'       => $menu_name,
             'category_filter' => $category_filter,
@@ -88,6 +103,9 @@ class Block {
             'expanded'    => $expanded,
             'layout'      => $layout,
             'category_display' => $category_display,
+            'nutrition_visibility' => $nutrition_visibility,
+            'labels_visibility'    => $labels_visibility,
+            'item_columns'         => $item_columns,
         );
 
         ob_start();

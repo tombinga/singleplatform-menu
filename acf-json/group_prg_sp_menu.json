@@ -6,29 +6,83 @@
       "key": "field_prg_sp_location_id",
       "label": "Location ID",
       "name": "location_id",
+      "aria-label": "",
       "type": "text",
-      "required": 1
+      "instructions": "",
+      "required": 1,
+      "conditional_logic": false,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "maxlength": "",
+      "placeholder": "",
+      "prepend": "",
+      "append": ""
     },
     {
       "key": "field_prg_sp_menu_name",
       "label": "Menu Name",
       "name": "menu_name",
+      "aria-label": "",
       "type": "text",
-      "instructions": "Exact menu name (leave blank for first menu)."
+      "instructions": "Exact menu name (leave blank for first menu).",
+      "required": false,
+      "conditional_logic": false,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "maxlength": "",
+      "placeholder": "",
+      "prepend": "",
+      "append": ""
     },
     {
       "key": "field_prg_sp_category_filter",
       "label": "Category Filter",
       "name": "category_filter",
+      "aria-label": "",
       "type": "repeater",
+      "instructions": "",
+      "required": false,
+      "conditional_logic": false,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
       "min": 0,
       "layout": "table",
+      "max": 0,
+      "rows_per_page": 20,
+      "button_label": "Add Row",
+      "collapsed": "",
       "sub_fields": [
         {
           "key": "field_prg_sp_category_name",
           "label": "Name",
           "name": "name",
-          "type": "text"
+          "aria-label": "",
+          "type": "text",
+          "instructions": "",
+          "required": false,
+          "conditional_logic": false,
+          "wrapper": {
+            "width": "",
+            "class": "",
+            "id": ""
+          },
+          "default_value": "",
+          "maxlength": "",
+          "placeholder": "",
+          "prepend": "",
+          "append": "",
+          "parent_repeater": "field_prg_sp_category_filter"
         }
       ]
     },
@@ -36,14 +90,36 @@
       "key": "field_prg_sp_show_prices",
       "label": "Show Prices",
       "name": "show_prices",
+      "aria-label": "",
       "type": "true_false",
-      "default_value": 1
+      "instructions": "",
+      "required": false,
+      "conditional_logic": false,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "default_value": 1,
+      "message": "",
+      "ui": 0,
+      "ui_on_text": "",
+      "ui_off_text": ""
     },
     {
       "key": "field_prg_sp_currency",
       "label": "Currency",
       "name": "currency",
+      "aria-label": "",
       "type": "select",
+      "instructions": "",
+      "required": false,
+      "conditional_logic": false,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
       "choices": {
         "USD": "USD",
         "EUR": "EUR",
@@ -55,27 +131,72 @@
       "ui": 1,
       "ajax": 0,
       "allow_null": 0,
-      "multiple": 0
+      "multiple": 0,
+      "placeholder": "",
+      "create_options": 0,
+      "save_options": 0
     },
     {
       "key": "field_prg_sp_cache_ttl",
       "label": "Cache TTL (seconds)",
       "name": "cache_ttl",
+      "aria-label": "",
       "type": "number",
+      "instructions": "",
+      "required": false,
+      "conditional_logic": false,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
       "min": 60,
       "max": 86400,
-      "step": 1
+      "step": 1,
+      "default_value": "",
+      "placeholder": "",
+      "prepend": "",
+      "append": ""
     },
     {
       "key": "field_prg_sp_expand_behavior",
       "label": "Expand Behavior",
       "name": "expand_behavior",
+      "aria-label": "",
       "type": "select",
+      "instructions": "",
+      "required": false,
+      "conditional_logic": false,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
       "choices": {
         "collapsed": "Collapsed",
         "expanded": "Expanded"
       },
-      "default_value": "collapsed"
+      "default_value": "collapsed",
+      "multiple": 0,
+      "allow_null": 0,
+      "ui": 0,
+      "ajax": 0,
+      "placeholder": "",
+      "return_format": "value",
+      "create_options": 0,
+      "save_options": 0
+    },
+    {
+      "key": "field_prg_sp_category_display",
+      "label": "Category Display",
+      "name": "category_display",
+      "type": "select",
+      "choices": {
+        "accordion": "Collapsible (accordion)",
+        "expanded": "Always expanded (no toggles)"
+      },
+      "default_value": "accordion",
+      "ui": 1
     },
     {
       "key": "field_prg_sp_layout",
@@ -88,6 +209,42 @@
       },
       "default_value": "accordion",
       "ui": 1
+    },
+    {
+      "key": "field_prg_sp_nutrition_visibility",
+      "label": "Nutrition Information",
+      "name": "nutrition_visibility",
+      "type": "select",
+      "choices": {
+        "hide": "Hide",
+        "show": "Show"
+      },
+      "default_value": "hide",
+      "ui": 1
+    },
+    {
+      "key": "field_prg_sp_labels_visibility",
+      "label": "Dietary Labels",
+      "name": "labels_visibility",
+      "type": "select",
+      "choices": {
+        "show": "Show",
+        "hide": "Hide"
+      },
+      "default_value": "show",
+      "ui": 1
+    },
+    {
+      "key": "field_prg_sp_item_columns",
+      "label": "Items per Row",
+      "name": "item_columns",
+      "type": "select",
+      "choices": {
+        "1": "1 column",
+        "2": "2 columns"
+      },
+      "default_value": "1",
+      "ui": 1
     }
   ],
   "location": [
@@ -99,7 +256,14 @@
       }
     ]
   ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
   "active": true,
   "description": "Fields for the SinglePlatform Menu ACF block.",
-  "modified": 1759422895
+  "show_in_rest": 0,
+  "modified": 1759431700
 }

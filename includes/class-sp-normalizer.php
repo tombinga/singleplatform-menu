@@ -83,6 +83,7 @@ class Normalizer {
                     'currency'  => $currency,
                     'tags'      => self::attribute_tags($it),
                     'additions' => self::additions($it, $currency),
+                    'nutrition' => self::nutrition_info($it),
                 );
             }
 
@@ -148,9 +149,61 @@ class Normalizer {
     private static function attribute_tags(array $item) : array {
         $tags = array();
         if (!isset($item['attributes']) || !is_array($item['attributes'])) return $tags;
+        // Common nutrition keys to exclude if they appear under attributes
+        $nutrition_keys = array(
+            'calories','calories_from_fat','fat','total_fat','saturated_fat','trans_fat',
+            'cholesterol','sodium','carbohydrates','total_carbohydrate','fiber','dietary_fiber',
+            'sugars','sugar','protein','vitamin_a','vitamin_c','calcium','iron','potassium',
+            'serving_size','servings','polyunsaturated_fat','monounsaturated_fat'
+        );
         foreach ($item['attributes'] as $k => $v) {
-            if ($v) $tags[] = sanitize_text_field((string) $k);
+            $key = sanitize_text_field((string) $k);
+            if (in_array(strtolower($key), $nutrition_keys, true)) continue; // exclude nutrition-like keys
+            // Only include boolean true (or the string 'true') as tags; ignore numeric/string values used by nutrition
+            $is_true_bool = is_bool($v) && $v === true;
+            $is_true_str  = is_string($v) && strtolower(trim($v)) === 'true';
+            if ($is_true_bool || $is_true_str) {
+                $tags[] = $key;
+            }
         }
         return $tags;
+    }
+
+    private static function nutrition_info(array $item) : array {
+        // Normalize to an array of ['label' => string, 'value' => string]
+        $out = array();
+        $source = null;
+        if (isset($item['nutrition']) && is_array($item['nutrition'])) {
+            $source = $item['nutrition'];
+        } elseif (isset($item['nutritional_info']) && is_array($item['nutritional_info'])) {
+            $source = $item['nutritional_info'];
+        }
+        if (!$source) return $out;
+
+        // Case 1: already an array of objects with label/value
+        $is_pair_list = false;
+        foreach ($source as $entry) {
+            if (is_array($entry) && (isset($entry['label']) || isset($entry['value']))) { $is_pair_list = true; break; }
+        }
+        if ($is_pair_list) {
+            foreach ($source as $entry) {
+                if (!is_array($entry)) continue;
+                $label = isset($entry['label']) ? sanitize_text_field((string) $entry['label']) : '';
+                $value = isset($entry['value']) ? sanitize_text_field((string) $entry['value']) : '';
+                if ($label === '' && $value === '') continue;
+                $out[] = array('label' => $label, 'value' => $value);
+            }
+            return $out;
+        }
+
+        // Case 2: associative array of key => value
+        foreach ($source as $k => $v) {
+            if (is_int($k)) continue; // skip numeric indexes if present
+            $label = sanitize_text_field((string) $k);
+            $value = sanitize_text_field(is_array($v) ? json_encode($v) : (string) $v);
+            if ($label === '' && $value === '') continue;
+            $out[] = array('label' => $label, 'value' => $value);
+        }
+        return $out;
     }
 }

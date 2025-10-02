@@ -2,8 +2,9 @@
 .sp-menu__group{margin-bottom:2rem}
 .sp-menu__title{font-size:1.5rem;margin-bottom:.75rem}
 .sp-menu__tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem;border-bottom:1px solid currentColor;padding-bottom:.5rem}
-.sp-menu__tab{background:none;border:0;font:inherit;padding:.5rem 1rem;border-radius:999px;cursor:pointer;transition:background-color .2s ease,color .2s ease}
-.sp-menu__tab[aria-selected="true"]{background:currentColor;color:#fff}
+.sp-menu__tab{background:none;border:0;font:inherit;padding:.5rem 0;margin-right:1rem;border-radius:0;cursor:pointer;color:inherit;border-bottom:2px solid transparent;transition:border-color .2s ease}
+.sp-menu__tab:hover{border-bottom-color:currentColor}
+.sp-menu__tab[aria-selected="true"]{background:none;color:inherit;border-bottom-color:currentColor}
 .sp-menu__tab:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 .sp-menu__category{margin-block:1rem;border-top:1px solid currentColor;padding-top:.75rem}
 .sp-menu__toggle{font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
@@ -15,3 +16,14 @@
 .sp-menu__additions{list-style:none;margin:.25rem 0 0;padding:0}
 .sp-menu__additions li{display:flex;justify-content:space-between;gap:.5rem}
 .sp_menu__price{white-space:nowrap}
+.sp-menu__nutrition{margin-top:.25rem;font-size:.9em;opacity:.9}
+.sp-menu__nutrition-list{margin:.25rem 0 0;padding:0}
+.sp-menu__nutrition-row{display:flex;justify-content:space-between;gap:.5rem}
+.sp-menu__nutrition-label{font-weight:600}
+.sp-menu__nutrition-value{margin:0}
+
+/* Items per Row (1 or 2 columns) */
+.sp-menu--cols-2 .sp-menu__items{display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1rem}
+@media (max-width: 640px){
+  .sp-menu--cols-2 .sp-menu__items{grid-template-columns:1fr}
+}
