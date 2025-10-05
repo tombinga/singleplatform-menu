@@ -6,7 +6,11 @@ if (!defined('ABSPATH')) { exit; }
 function format_price($number, $currency) {
     $number = is_numeric($number) ? (float) $number : 0.0;
     $symbol = currency_symbol($currency);
-    return $symbol . number_format_i18n($number, 2);
+    // Round to 2 for consistency, then drop decimals if it's effectively a whole amount.
+    $rounded = round($number, 2);
+    $is_whole = abs($rounded - floor($rounded)) < 0.005; // guard against float precision
+    $decimals = $is_whole ? 0 : 2;
+    return $symbol . number_format_i18n($rounded, $decimals);
 }
 
 function currency_symbol($code) {
