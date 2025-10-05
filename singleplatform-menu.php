@@ -28,9 +28,11 @@ require_once PRG_SP_MENU_DIR . 'includes/class-sp-client.php';
 require_once PRG_SP_MENU_DIR . 'includes/class-sp-normalizer.php';
 require_once PRG_SP_MENU_DIR . 'includes/class-sp-block.php';
 require_once PRG_SP_MENU_DIR . 'includes/class-sp-rest.php';
+require_once PRG_SP_MENU_DIR . 'includes/class-sp-updates.php';
 
 add_action('plugins_loaded', function () {
     load_plugin_textdomain('sp-menu');
+    \PRG\SinglePlatform\Updates::init();
 });
 
 // Suppress the block supports warning for ACF blocks (known ACF/WP compatibility issue)
