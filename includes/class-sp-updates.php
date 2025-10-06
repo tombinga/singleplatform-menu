@@ -23,22 +23,20 @@ class Updates
             return; // If disabled via filter, skip silently
         }
 
-        // Load PUC library if not already loaded
-        if (!class_exists('\\Puc_v4_Factory')) {
-            $lib = PRG_SP_MENU_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php';
-            if (file_exists($lib)) {
-                require_once $lib;
-            } else {
-                return; // Library not present; skip
-            }
+        // Load PUC library
+        $lib = PRG_SP_MENU_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php';
+        if (file_exists($lib)) {
+            require_once $lib;
+        } else {
+            return; // Library not present; skip
         }
 
         $pluginFile = PRG_SP_MENU_DIR . 'singleplatform-menu.php';
         // Slug is used internally by PUC; keep stable
         $slug = 'singleplatform-menu';
 
-        // Build update checker via dynamic call to avoid static analyzer errors
-        $factoryClass = '\\Puc_v4_Factory';
+        // Build update checker via namespaced v5.6 factory
+        $factoryClass = '\\YahnisElsts\\PluginUpdateChecker\\v5p6\\PucFactory';
         try {
             $updateChecker = is_callable([$factoryClass, 'buildUpdateChecker'])
                 ? call_user_func([$factoryClass, 'buildUpdateChecker'], $repo, $pluginFile, $slug)
