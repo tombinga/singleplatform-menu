@@ -4,25 +4,46 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.4.0] - 2025-10-11
 
 ### Added
 
-- Layout selector with a new Tabbed layout for menus, including accessible tablist and keyboard support (render template, JS behavior, CSS styles).
-- Category Display option to disable category toggling (always expanded); items are always visible and no toggle buttons are rendered (block view data, render template, JS binding).
-- Nutrition Information toggle to show/hide per-item nutrition facts when available (ACF field, normalizer mapping, render template, CSS).
-- Dietary Labels visibility toggle to show/hide item attribute labels like “vegetarian”, “gluten-free”, etc. (ACF field, render gating, refined tag extraction).
-- Items per Row option to render items in 1 or 2 columns with responsive fallback (ACF field, render wrapper class, CSS grid).
-- Auto-update integration using Yahnis Elsts’s [plugin-update-checker](https://github.com/YahnisElsts/plugin-update-checker) (guarded loader, admin-only init; requires vendored library and repo configuration).
+- Snapshot (durable cache) feature to serve menus from a local, last-good snapshot stored in the database (`includes/class-sp-snapshot.php`).
+- Admin settings for Snapshot: enable/disable, TTL, Locations to Sync, Cron frequency, and a "Sync now" button (`includes/class-sp-settings.php`).
+- Cron scheduling and activation hooks to install the snapshot table and refresh snapshots on an interval (`singleplatform-menu.php`).
 
 ### Changed
 
-- Display all available menus by default when no `menu_name` is selected in the SinglePlatform block (`includes/class-sp-normalizer.php`, `blocks/singleplatform-menu/render.php`, `blocks/singleplatform-menu/style.css`).
-- Simplified tab styling: default text color and a simple border-bottom on hover/active (`blocks/singleplatform-menu/style.css`).
+- Block render now consults snapshots on cache miss when enabled and persists fresh API results to snapshot (`includes/class-sp-block.php`).
+- Plugin version bumped to `0.4.0`.
 
-### Removed
+### Notes
 
-- Removed SinglePlatform attribution from the render output; `.sp-menu__attrib` is no longer rendered (`blocks/singleplatform-menu/render.php`).
+- Disable Snapshot to restore previous behavior with no changes to output.
+
+## [0.3.4] - 2025-10-04
+
+### Changed
+
+- Improved price formatting to omit decimals for whole amounts (includes/class-sp-block.php).
+
+## [0.3.3] - 2025-10-04
+
+### Added
+
+- Integrated Yahnis Elsts’s plugin-update-checker library to enable auto-update functionality for the SinglePlatform Menu plugin. Added guarded loader and admin-only initialization in a new Updates class, updated main plugin file to initialize updates, and vendored the plugin-update-checker library and its dependencies.
+
+## [0.3.2] - 2025-10-02
+
+### Added
+
+- Added options to show/hide per-item nutrition facts and dietary labels in the SinglePlatform menu block. Adds support for rendering nutrition information, controlling label visibility, and selecting items per row (1 or 2 columns) with corresponding CSS grid styles. Removes SinglePlatform attribution from the render output and refines tag extraction to exclude nutrition keys.
+
+## [0.3.1] - 2025-10-02
+
+### Added
+
+- Introduced a new 'Layout' field to the ACF block, allowing users to choose between 'accordion' and 'tabs' layouts for menu display. Updates PHP rendering logic, styles, and JavaScript to support accessible tab navigation. Removes ACF JSON save path filter to restrict JSON changes to admin sync only.
 
 ## [0.3.0] - 2025-10-01
 

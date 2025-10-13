@@ -80,9 +80,25 @@ class Block {
 
         $data = Cache::get($cache_key);
         if ($data === false) {
-            $menus = Client::get_menus($location_id);
-            if (is_wp_error($menus)) {
-                return self::maybe_editor_error($menus);
+            $menus = null;
+            if ($location_id !== '__fixture__' && Settings::use_snapshot()) {
+                $ttl_snap = Settings::snapshot_ttl();
+                if (Snapshot::is_stale($location_id, $ttl_snap)) {
+                    Snapshot::sync_once($location_id);
+                }
+                $maybe_menus = Snapshot::get_payload($location_id);
+                if (is_array($maybe_menus)) {
+                    $menus = $maybe_menus;
+                }
+            }
+            if ($menus === null) {
+                $menus = Client::get_menus($location_id);
+                if (is_wp_error($menus)) {
+                    return self::maybe_editor_error($menus);
+                }
+                if ($location_id !== '__fixture__' && Settings::use_snapshot()) {
+                    Snapshot::upsert($location_id, array('code' => 200, 'data' => array('menus' => $menus)), null, 'ok', '');
+                }
             }
             $select = array(
                 'menu_name'        => $menu_name,
