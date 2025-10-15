@@ -2,7 +2,7 @@
 /**
  * Plugin Name: SinglePlatform Menu (ACF Block)
  * Description: Server-rendered ACF block that displays a restaurant menu via the SinglePlatform API with caching.
- * Version: 0.4.0
+ * Version: 0.4.1
  * Author: Tom Binga
  * Text Domain: sp-menu
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('PRG_SP_MENU_VERSION', '0.4.0');
+define('PRG_SP_MENU_VERSION', '0.4.1');
 define('PRG_SP_MENU_DIR', plugin_dir_path(__FILE__));
 define('PRG_SP_MENU_URL', plugin_dir_url(__FILE__));
 
@@ -93,7 +93,8 @@ register_activation_hook(__FILE__, function () {
 
 register_deactivation_hook(__FILE__, function () {
     $ts = wp_next_scheduled('prg_sp_sync_all');
-    if ($ts) wp_unschedule_event($ts, 'prg_sp_sync_all');
+    if ($ts)
+        wp_unschedule_event($ts, 'prg_sp_sync_all');
 });
 
 add_filter('cron_schedules', function ($schedules) {
