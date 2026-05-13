@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "prg/singleplatform-menu",
+  "version": "0.5.0",
+  "title": "Restaurant Menu (SinglePlatform)",
+  "category": "widgets",
+  "icon": "food",
+  "description": "Server-rendered SinglePlatform menu.",
+  "keywords": ["menu", "restaurant", "singleplatform"],
+  "supports": {
+    "align": ["wide", "full"],
+    "anchor": true,
+    "html": false,
+    "customClassName": true
+  },
+  "textdomain": "sp-menu",
+  "editorScript": "file:./index.js",
+  "style": "file:../blocks/singleplatform-menu/style.css",
+  "editorStyle": "file:../blocks/singleplatform-menu/editor.css",
+  "attributes": {
+    "location_id": { "type": "string", "default": "" },
+    "menu_name": { "type": "string", "default": "" },
+    "highlighted_items": { "type": "array", "default": [] },
+    "show_prices": { "type": "boolean", "default": true },
+    "currency": { "type": "string", "default": "USD" },
+    "cache_ttl": { "type": "number", "default": 900 },
+    "expand_behavior": { "type": "string", "default": "collapsed" },
+    "category_display": { "type": "string", "default": "accordion" },
+    "layout": { "type": "string", "default": "accordion" },
+    "nutrition_visibility": { "type": "string", "default": "hide" },
+    "labels_visibility": { "type": "string", "default": "show" },
+    "item_columns": { "type": "string", "default": "1" }
+  }
+}

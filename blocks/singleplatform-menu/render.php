@@ -11,6 +11,19 @@ if (empty($menus) && isset($data['menuName'])) {
   $menus = array($data);
 }
 
+// Prepare the highlighted items for efficient lookup.
+$highlights_lookup = array();
+if (!empty($view['data']['highlighted_items']) && is_array($view['data']['highlighted_items'])) {
+  foreach ($view['data']['highlighted_items'] as $h) {
+    if (!empty($h['item_identifier']) && !empty($h['highlight_type'])) {
+      // The key is already the unique 'Category::Item' string from the select field.
+      $key = $h['item_identifier'];
+      // The value is the CSS class suffix.
+      $highlights_lookup[$key] = sanitize_html_class($h['highlight_type']);
+    }
+  }
+}
+
 $expanded = !empty($view['expanded']);
 $show_prices = !empty($view['show_prices']);
 $layout = isset($view['layout']) && in_array($view['layout'], array('accordion', 'tabs'), true) ? $view['layout'] : 'accordion';
@@ -85,8 +98,19 @@ $menu_count = count($menus);
                   <ul id="<?php echo esc_attr($cid); ?>" class="sp-menu__items">
                   <?php endif; ?>
                   <?php if (!empty($cat['items'])): ?>
-                    <?php foreach ($cat['items'] as $item): ?>
-                      <li class="sp-menu__item">
+                    <?php foreach ($cat['items'] as $item):
+
+                      // --- Highlighting logic ---
+                      $item_classes = ['sp-menu__item'];
+                      $current_key = $cat['name'] . '::' . $item['name'];
+                      if (isset($highlights_lookup[$current_key])) {
+                        $highlight_class = 'sp-menu__item--' . $highlights_lookup[$current_key];
+                        $item_classes[] = $highlight_class;
+                      }
+                      // --- End highlighting logic ---
+          
+                      ?>
+                      <li class="<?php echo esc_attr(implode(' ', $item_classes)); ?>">
                         <div class="sp-menu__row">
                           <span class="sp-menu__item-name"><?php echo esc_html($item['name']); ?></span>
                           <?php if ($show_prices): ?>
