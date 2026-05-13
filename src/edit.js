@@ -18,7 +18,8 @@ export default function Edit({ attributes, setAttributes }) {
   const {
     location_id,
     menu_name,
-    highlighted_items,
+    category_filter = [],
+    highlighted_items = [],
     show_prices,
     currency,
     cache_ttl,
@@ -31,12 +32,14 @@ export default function Edit({ attributes, setAttributes }) {
   } = attributes;
 
   const [menuItems, setMenuItems] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
 
   // Fetch menu items when location_id changes
   useEffect(() => {
     if (!location_id || location_id.length < 3) {
       setMenuItems([]);
+      setCategoryOptions([]);
       return;
     }
 
@@ -44,10 +47,11 @@ export default function Edit({ attributes, setAttributes }) {
 
     apiFetch({ path: `/prg-sp/v1/menus/${encodeURIComponent(location_id)}` })
       .then((data) => {
-        // The API returns grouped data { text: "Group", children: [...] }
-        // We need to flatten this for a standard SelectControl or map it properly
-        // SelectControl supports optgroups if formatted as [ { label: 'Group', options: [...] } ]
-        const formatted = data.map((group) => ({
+        const itemGroups = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : [];
+        const categories = Array.isArray(data.categories)
+          ? data.categories
+          : itemGroups.map((group) => ({ id: group.text, text: group.text }));
+        const formatted = itemGroups.map((group) => ({
           label: group.text,
           options: group.children.map((child) => ({
             label: child.text,
@@ -59,9 +63,16 @@ export default function Edit({ attributes, setAttributes }) {
         formatted.unshift({ label: __("Select an item...", "sp-menu"), value: "" });
 
         setMenuItems(formatted);
+        setCategoryOptions(
+          categories.map((category) => ({
+            label: category.text,
+            value: category.id,
+          })),
+        );
       })
       .catch(() => {
         setMenuItems([]);
+        setCategoryOptions([]);
       })
       .finally(() => {
         setIsLoadingItems(false);
@@ -86,6 +97,10 @@ export default function Edit({ attributes, setAttributes }) {
     setAttributes({ highlighted_items: newItems });
   };
 
+  const updateCategoryFilter = (value) => {
+    setAttributes({ category_filter: Array.isArray(value) ? value : [value].filter(Boolean) });
+  };
+
   return (
     <div {...useBlockProps()}>
       <InspectorControls>
@@ -101,6 +116,14 @@ export default function Edit({ attributes, setAttributes }) {
             value={menu_name}
             onChange={(val) => setAttributes({ menu_name: val })}
             help={__("Exact menu name (optional).", "sp-menu")}
+          />
+          <SelectControl
+            label={__("Category Filter", "sp-menu")}
+            value={category_filter}
+            multiple
+            options={categoryOptions}
+            onChange={updateCategoryFilter}
+            help={__("Leave empty to show all categories.", "sp-menu")}
           />
         </PanelBody>
 

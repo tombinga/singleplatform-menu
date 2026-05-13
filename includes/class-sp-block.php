@@ -30,6 +30,17 @@ class Block
 
         $menu_name = isset($attributes['menu_name']) ? sanitize_text_field((string) $attributes['menu_name']) : '';
         $highlighted_items = isset($attributes['highlighted_items']) && is_array($attributes['highlighted_items']) ? $attributes['highlighted_items'] : array();
+        $category_filter = array();
+        if (isset($attributes['category_filter']) && is_array($attributes['category_filter'])) {
+            foreach ($attributes['category_filter'] as $category_name) {
+                $category_name = sanitize_text_field((string) $category_name);
+                if ($category_name !== '') {
+                    $category_filter[] = $category_name;
+                }
+            }
+            $category_filter = array_values(array_unique($category_filter));
+            sort($category_filter, SORT_NATURAL | SORT_FLAG_CASE);
+        }
 
         $show_prices = isset($attributes['show_prices']) ? (bool) $attributes['show_prices'] : true;
         $currency = isset($attributes['currency']) ? sanitize_text_field((string) $attributes['currency']) : 'USD';
@@ -43,7 +54,7 @@ class Block
 
         $cache_key = Cache::key($location_id, array(
             'menu_name' => $menu_name,
-            'category_filter' => array(),
+            'category_filter' => $category_filter,
             'show_prices' => $show_prices,
             'currency' => $currency,
         ));
@@ -72,7 +83,7 @@ class Block
             }
             $select = array(
                 'menu_name' => $menu_name,
-                'category_filter' => array(),
+                'category_filter' => $category_filter,
                 'currency_override' => $currency ?: '',
             );
             $data = Normalizer::to_view_model($menus, $select);

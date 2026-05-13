@@ -54,11 +54,20 @@ class Rest
             return new \WP_REST_Response(array('error' => 'Location ID cannot be empty.'), 400);
         }
 
-        // Use the snapshot for speed in the editor, but fall back to a live call if needed.
-        $menus = Snapshot::get_payload($location_id);
+        $menus = null;
+        if (Settings::use_snapshot()) {
+            $ttl_snap = Settings::snapshot_ttl();
+            if (Snapshot::is_stale($location_id, $ttl_snap)) {
+                Snapshot::sync_once($location_id);
+            }
+            $menus = Snapshot::get_payload($location_id);
+        }
 
         if ($menus === null) {
             $menus = Client::get_menus($location_id);
+            if (!is_wp_error($menus) && Settings::use_snapshot()) {
+                Snapshot::upsert($location_id, array('code' => 200, 'data' => array('menus' => $menus)), null, 'ok', '');
+            }
         }
 
         if (is_wp_error($menus)) {
@@ -68,8 +77,11 @@ class Rest
             ), 404);
         }
 
-        // Format the data specifically for an ACF select field with optgroups
-        $formatted_data = array();
+        $formatted_data = array(
+            'categories' => array(),
+            'items' => array(),
+        );
+        $seen_categories = array();
         foreach ($menus as $menu) {
             if (!isset($menu['sections']) || !is_array($menu['sections']))
                 continue;
@@ -79,8 +91,16 @@ class Rest
                     continue;
                 $category_name = (string) $section['name'];
 
+                if (!isset($seen_categories[$category_name])) {
+                    $formatted_data['categories'][] = array(
+                        'id' => $category_name,
+                        'text' => $category_name,
+                    );
+                    $seen_categories[$category_name] = true;
+                }
+
                 $group = array(
-                    'text' => $category_name, // This will be the <optgroup> label
+                    'text' => $category_name,
                     'children' => array()
                 );
 
@@ -91,14 +111,14 @@ class Rest
                         $item_name = (string) $item['name'];
 
                         $group['children'][] = array(
-                            'id' => $category_name . '::' . $item_name, // The unique value
-                            'text' => $item_name                      // The display text
+                            'id' => $category_name . '::' . $item_name,
+                            'text' => $item_name
                         );
                     }
                 }
 
                 if (!empty($group['children'])) {
-                    $formatted_data[] = $group;
+                    $formatted_data['items'][] = $group;
                 }
             }
         }

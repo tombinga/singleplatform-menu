@@ -34,6 +34,10 @@
       "type": "string",
       "default": ""
     },
+    "category_filter": {
+      "type": "array",
+      "default": []
+    },
     "highlighted_items": {
       "type": "array",
       "default": []

@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.0] - 2026-05-12
+
+### Added
+
+- Added a native Gutenberg dynamic block implementation for the SinglePlatform menu block, including `block.json`, editor controls, generated build assets, and server-side rendering via `register_block_type()`.
+- Added Gutenberg block support for highlighting selected menu items as special, featured, or new.
+
+### Changed
+
+- Converted the menu block from an ACF block to a native Gutenberg block and removed the ACF block registration flow.
+- Updated block attributes and editor controls to manage Location ID, Menu Name, category filtering, highlighted items, display options, details visibility, and cache TTL directly in the block sidebar.
+- Updated the editor menu endpoint to return category options and grouped item options for Gutenberg controls.
+- Updated the editor menu endpoint to refresh stale snapshots before falling back to live API data.
+- Updated plugin and block metadata versions to `0.5.0`.
+
+### Fixed
+
+- Restored category filtering in the Gutenberg block render path, cache key generation, and normalization flow.
+
 ## [0.4.1] - 2025-10-15
 
 ### Fixed
