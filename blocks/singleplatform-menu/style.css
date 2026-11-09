@@ -5,6 +5,9 @@
 .sp-menu__tab:hover{border-bottom-color:currentColor}
 .sp-menu__tab[aria-selected="true"]{background:none;color:inherit;border-bottom-color:currentColor}
 .sp-menu__tab:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.sp-menu__tabs--members{margin-bottom:1rem}
+.sp-menu--grouped .sp-menu__tab{max-width:100%;overflow-wrap:anywhere}
+.sp-menu--grouped [hidden]{display:none}
 .sp-menu__category{margin-block:1rem;border-top:1px solid currentColor;padding-top:.75rem}
 .sp-menu__toggle{font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
 .sp-menu__items{list-style:none;padding-left:0;margin:.5rem 0 0}

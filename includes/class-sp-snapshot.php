@@ -48,18 +48,19 @@ class Snapshot {
         $now = current_time('mysql');
         $existing = self::get_row($location_id);
         if ($existing) {
+            $values = array(
+                'last_attempt' => $now,
+                'status' => $status,
+                'error_excerpt' => $error_excerpt,
+            );
+            if ($status === 'ok') {
+                $values += array('etag' => $etag, 'payload' => $payload, 'last_success' => $now);
+            }
             $wpdb->update(
                 $table,
-                array(
-                    'etag' => $etag,
-                    'payload' => $payload,
-                    'last_success' => $status === 'ok' ? $now : $existing['last_success'],
-                    'last_attempt' => $now,
-                    'status' => $status,
-                    'error_excerpt' => $error_excerpt,
-                ),
+                $values,
                 array('location_id' => $location_id),
-                array('%s','%s','%s','%s','%s','%s'),
+                array_fill(0, count($values), '%s'),
                 array('%s')
             );
         } else {
@@ -87,6 +88,9 @@ class Snapshot {
     }
 
     public static function sync_once($location_id) {
+        if (Settings::use_fixture()) {
+            return Client::get_menus($location_id);
+        }
         $resp = Client::get_menus($location_id);
         if (is_wp_error($resp)) {
             $excerpt = sanitize_text_field($resp->get_error_message());

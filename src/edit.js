@@ -13,11 +13,15 @@ import {
 import { useState, useEffect } from "@wordpress/element";
 import ServerSideRender from "@wordpress/server-side-render";
 import apiFetch from "@wordpress/api-fetch";
+import MenuGroups from "./menu-groups";
+import { handleMenuInteraction } from "./menu-interaction";
 
 export default function Edit({ attributes, setAttributes }) {
   const {
     location_id,
     menu_name,
+    enable_menu_groups,
+    menu_groups = {},
     category_filter = [],
     highlighted_items = [],
     show_prices,
@@ -31,22 +35,26 @@ export default function Edit({ attributes, setAttributes }) {
     item_columns,
   } = attributes;
 
-  const [menuItems, setMenuItems] = useState([]);
-  const [categoryOptions, setCategoryOptions] = useState([]);
-  const [isLoadingItems, setIsLoadingItems] = useState(false);
+  const location = location_id.trim();
+  const [lookup, setLookup] = useState(null);
+  const currentLookup = lookup?.location === location ? lookup : null;
+  const menuItems = currentLookup?.items ?? [];
+  const categoryOptions = currentLookup?.categories ?? [];
+  const isLoadingItems = !!location && !currentLookup;
 
   // Fetch menu items when location_id changes
   useEffect(() => {
-    if (!location_id || location_id.length < 3) {
-      setMenuItems([]);
-      setCategoryOptions([]);
+    setLookup(null);
+    if (!location) {
       return;
     }
 
-    setIsLoadingItems(true);
-
-    apiFetch({ path: `/prg-sp/v1/menus/${encodeURIComponent(location_id)}` })
+    let active = true;
+    apiFetch({ path: `/prg-sp/v1/menus/${encodeURIComponent(location)}` })
       .then((data) => {
+        if (!active) {
+          return;
+        }
         const itemGroups = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : [];
         const categories = Array.isArray(data.categories)
           ? data.categories
@@ -62,22 +70,23 @@ export default function Edit({ attributes, setAttributes }) {
         // Add an empty default
         formatted.unshift({ label: __("Select an item...", "sp-menu"), value: "" });
 
-        setMenuItems(formatted);
-        setCategoryOptions(
-          categories.map((category) => ({
+        setLookup({
+          location,
+          items: formatted,
+          menus: Array.isArray(data.menus) ? data.menus : [],
+          categories: categories.map((category) => ({
             label: category.text,
             value: category.id,
           })),
-        );
+        });
       })
       .catch(() => {
-        setMenuItems([]);
-        setCategoryOptions([]);
-      })
-      .finally(() => {
-        setIsLoadingItems(false);
+        if (active) {
+          setLookup({ location, error: true });
+        }
       });
-  }, [location_id]);
+    return () => { active = false; };
+  }, [location]);
 
   const updateHighlightItem = (index, key, value) => {
     const newItems = [...highlighted_items];
@@ -114,8 +123,11 @@ export default function Edit({ attributes, setAttributes }) {
           <TextControl
             label={__("Menu Name", "sp-menu")}
             value={menu_name}
+            disabled={enable_menu_groups}
             onChange={(val) => setAttributes({ menu_name: val })}
-            help={__("Exact menu name (optional).", "sp-menu")}
+            help={enable_menu_groups
+              ? __("Menu Groups uses all menus from the location.", "sp-menu")
+              : __("Exact menu name (optional).", "sp-menu")}
           />
           <SelectControl
             label={__("Category Filter", "sp-menu")}
@@ -125,6 +137,25 @@ export default function Edit({ attributes, setAttributes }) {
             onChange={updateCategoryFilter}
             help={__("Leave empty to show all categories.", "sp-menu")}
           />
+        </PanelBody>
+
+        <PanelBody title={__("Menu Groups", "sp-menu")} initialOpen={false}>
+          <ToggleControl
+            label={__("Enable Menu Groups", "sp-menu")}
+            checked={enable_menu_groups}
+            onChange={(value) => setAttributes({ enable_menu_groups: value })}
+            help={__("Groups and standalone menus appear as top-level tabs.", "sp-menu")}
+          />
+          {enable_menu_groups && (
+            <MenuGroups
+              config={menu_groups}
+              location={location}
+              catalog={currentLookup?.menus ?? []}
+              loading={isLoadingItems}
+              error={!!currentLookup?.error}
+              onChange={(config) => setAttributes({ menu_groups: config })}
+            />
+          )}
         </PanelBody>
 
         <PanelBody title={__("Highlighted Items", "sp-menu")} initialOpen={false}>
@@ -185,6 +216,7 @@ export default function Edit({ attributes, setAttributes }) {
           <SelectControl
             label={__("Layout", "sp-menu")}
             value={layout}
+            disabled={enable_menu_groups}
             options={[
               { label: __("Accordion", "sp-menu"), value: "accordion" },
               { label: __("Tabs", "sp-menu"), value: "tabs" },
@@ -254,7 +286,9 @@ export default function Edit({ attributes, setAttributes }) {
         </PanelBody>
       </InspectorControls>
 
-      <ServerSideRender block="prg/singleplatform-menu" attributes={attributes} />
+      <div onClick={handleMenuInteraction} onKeyDown={handleMenuInteraction}>
+        <ServerSideRender block="prg/singleplatform-menu" attributes={attributes} httpMethod="POST" />
+      </div>
     </div>
   );
 }

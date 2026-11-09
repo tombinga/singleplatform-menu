@@ -16,9 +16,11 @@ class Block
      */
     public static function render($attributes = array(), $content = '')
     {
-        $use_fixture = Settings::use_fixture() && Settings::fixture_json() !== '';
+        $use_fixture = Settings::use_fixture();
 
         $location_id = isset($attributes['location_id']) ? sanitize_text_field((string) $attributes['location_id']) : '';
+        $configured_location = $location_id;
+        $grouped = ($attributes['enable_menu_groups'] ?? false) === true;
 
         if ($location_id === '' && !$use_fixture) {
             return self::wrap_notice(esc_html__('Select a Location ID to display a menu.', 'sp-menu'));
@@ -52,14 +54,28 @@ class Block
         $labels_visibility = isset($attributes['labels_visibility']) ? sanitize_text_field((string) $attributes['labels_visibility']) : 'show';
         $item_columns = isset($attributes['item_columns']) ? sanitize_text_field((string) $attributes['item_columns']) : '1';
 
+        $select = array(
+            'menu_name' => $grouped ? '' : $menu_name,
+            'category_filter' => $category_filter,
+            'currency_override' => $currency ?: '',
+            'omit_empty_menu' => $grouped,
+        );
         $cache_key = Cache::key($location_id, array(
-            'menu_name' => $menu_name,
+            'menu_name' => $select['menu_name'],
             'category_filter' => $category_filter,
             'show_prices' => $show_prices,
             'currency' => $currency,
-        ));
+        ) + ($grouped ? array('catalog_schema' => 1) : array()));
 
-        $data = Cache::get($cache_key);
+        if ($use_fixture) {
+            $menus = Client::get_menus($location_id);
+            if (is_wp_error($menus)) {
+                return self::maybe_editor_error($menus);
+            }
+            $data = Normalizer::to_view_model($menus, $select);
+        } else {
+            $data = Cache::get($cache_key);
+        }
         if ($data === false) {
             $menus = null;
             if ($location_id !== '__fixture__' && Settings::use_snapshot()) {
@@ -81,11 +97,6 @@ class Block
                     Snapshot::upsert($location_id, array('code' => 200, 'data' => array('menus' => $menus)), null, 'ok', '');
                 }
             }
-            $select = array(
-                'menu_name' => $menu_name,
-                'category_filter' => $category_filter,
-                'currency_override' => $currency ?: '',
-            );
             $data = Normalizer::to_view_model($menus, $select);
             Cache::set($cache_key, $data, $ttl);
             if ($location_id !== '__fixture__') {
@@ -101,17 +112,78 @@ class Block
             'show_prices' => $show_prices,
             'currency' => $currency,
             'expanded' => $expanded,
-            'layout' => $layout,
+            'layout' => $grouped ? 'tabs' : $layout,
             'category_display' => $category_display,
             'nutrition_visibility' => $nutrition_visibility,
             'labels_visibility' => $labels_visibility,
             'item_columns' => $item_columns,
         );
+        if ($grouped) {
+            $config = $attributes['menu_groups'] ?? array();
+            $groups = is_array($config) && ($config['location_id'] ?? null) === $configured_location
+                ? ($config['groups'] ?? array())
+                : array();
+            $view['choices'] = self::menu_choices($data['menus'], is_array($groups) ? $groups : array());
+        }
 
         ob_start();
         $template = PRG_SP_MENU_DIR . 'blocks/singleplatform-menu/render.php';
         include $template;
         return (string) ob_get_clean();
+    }
+
+    private static function menu_choices(array $menus, array $groups)
+    {
+        $positions = array();
+        foreach ($menus as $position => $menu) {
+            $id = $menu['menuId'] ?? '';
+            if ($id !== '' && !isset($positions[$id])) {
+                $positions[$id] = $position;
+            }
+        }
+
+        $claimed = array();
+        $choices = array();
+        foreach ($groups as $group) {
+            if (!is_array($group) || !is_string($group['label'] ?? null) || !is_array($group['members'] ?? null)) {
+                continue;
+            }
+            $label = sanitize_text_field($group['label']);
+            if ($label === '') {
+                continue;
+            }
+
+            $members = array();
+            foreach ($group['members'] as $member) {
+                $id = menu_id(is_array($member) ? ($member['menu_id'] ?? null) : null);
+                if (!isset($positions[$id]) || isset($claimed[$id])) {
+                    continue;
+                }
+                $position = $positions[$id];
+                $menu = $menus[$position];
+                if (is_string($member['label'] ?? null)) {
+                    $override = sanitize_text_field($member['label']);
+                    if ($override !== '') {
+                        $menu['menuName'] = $override;
+                    }
+                }
+                $members[$position] = $menu;
+                $claimed[$id] = true;
+            }
+            if ($members) {
+                $choices[min(array_keys($members))] = array('label' => $label, 'menus' => array_values($members));
+            }
+        }
+
+        foreach ($menus as $position => $menu) {
+            $id = $menu['menuId'] ?? '';
+            if ($id !== '' && ($positions[$id] !== $position || isset($claimed[$id]))) {
+                continue;
+            }
+            $choices[$position] = array('label' => '', 'menus' => array($menu));
+        }
+        ksort($choices, SORT_NUMERIC);
+        return array_values($choices);
     }
 
     private static function maybe_editor_error(\WP_Error $err)

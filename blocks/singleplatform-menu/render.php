@@ -32,54 +32,45 @@ $nutrition_visibility = isset($view['nutrition_visibility']) && in_array($view['
 $labels_visibility = isset($view['labels_visibility']) && in_array($view['labels_visibility'], array('show', 'hide'), true) ? $view['labels_visibility'] : 'show';
 $item_columns = isset($view['item_columns']) && in_array((string) $view['item_columns'], array('1', '2'), true) ? (string) $view['item_columns'] : '1';
 
-$instance = function_exists('wp_unique_id') ? wp_unique_id('sp-menu-') : uniqid('sp-menu-');
+$instance = 'sp-menu-' . (function_exists('wp_generate_uuid4') ? wp_generate_uuid4() : uniqid());
 $wrapper_class = 'sp-menu sp-menu--layout-' . $layout . ' sp-menu--cat-' . $cat_display . ' sp-menu--cols-' . $item_columns;
+if (isset($view['choices'])) {
+  $wrapper_class .= ' sp-menu--grouped';
+}
 $attrs = function_exists('get_block_wrapper_attributes')
   ? get_block_wrapper_attributes(array('class' => $wrapper_class))
   : 'class="' . esc_attr($wrapper_class) . '"';
 
-$menu_count = count($menus);
-?>
-<section <?php echo $attrs; ?>>
-  <?php if ($layout === 'tabs' && $menu_count > 0): ?>
-    <nav class="sp-menu__tabs" role="tablist" aria-label="<?php echo esc_attr__('Menu selection', 'sp-menu'); ?>">
-      <?php foreach ($menus as $m_index => $menu):
-        $menu_heading = isset($menu['menuName']) && $menu['menuName'] !== ''
-          ? $menu['menuName']
-          : (isset($menu['locationName']) ? $menu['locationName'] : __('Menu', 'sp-menu'));
-        $tab_id = $instance . '-tab-' . (int) $m_index;
-        $panel_id = $instance . '-panel-' . (int) $m_index;
-        $is_active = ($m_index === 0);
-        ?>
-        <button type="button" class="sp-menu__tab" role="tab" id="<?php echo esc_attr($tab_id); ?>"
-          aria-controls="<?php echo esc_attr($panel_id); ?>" aria-selected="<?php echo $is_active ? 'true' : 'false'; ?>"
-          tabindex="<?php echo $is_active ? '0' : '-1'; ?>" data-sp-menu-target="<?php echo esc_attr($panel_id); ?>">
-          <?php echo esc_html($menu_heading); ?>
-        </button>
-      <?php endforeach; ?>
-    </nav>
-  <?php endif; ?>
+$heading = static function ($menu) {
+  return ($menu['menuName'] ?? '') !== ''
+    ? $menu['menuName']
+    : (($menu['locationName'] ?? '') ?: __('Menu', 'sp-menu'));
+};
+$render_tabs = static function ($labels, $prefix, $label, $class = '') {
+  ?>
+  <nav class="sp-menu__tabs<?php echo esc_attr($class); ?>" role="tablist" aria-label="<?php echo esc_attr($label); ?>">
+    <?php foreach ($labels as $index => $text): ?>
+      <button type="button" class="sp-menu__tab" role="tab" id="<?php echo esc_attr($prefix . '-tab-' . $index); ?>"
+        aria-controls="<?php echo esc_attr($prefix . '-panel-' . $index); ?>" aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>"
+        tabindex="<?php echo $index === 0 ? '0' : '-1'; ?>"><?php echo esc_html($text); ?></button>
+    <?php endforeach; ?>
+  </nav>
+  <?php
+};
+$panel_attributes = static function ($prefix, $index, $tabs) {
+  $attrs = 'class="sp-menu__group" id="' . esc_attr($prefix . '-panel-' . $index) . '"';
+  if ($tabs) {
+    $attrs .= ' role="tabpanel" tabindex="0" aria-labelledby="' . esc_attr($prefix . '-tab-' . $index) . '"';
+    if ($index !== 0) {
+      $attrs .= ' hidden';
+    }
+  }
+  return $attrs;
+};
 
-  <?php if ($menu_count > 0): ?>
-    <?php foreach ($menus as $m_index => $menu):
-      $menu_heading = isset($menu['menuName']) && $menu['menuName'] !== ''
-        ? $menu['menuName']
-        : (isset($menu['locationName']) ? $menu['locationName'] : __('Menu', 'sp-menu'));
-      $currency = isset($menu['currency']) ? $menu['currency'] : (isset($view['currency']) ? $view['currency'] : 'USD');
-      $panel_id = $instance . '-panel-' . (int) $m_index;
-      $tab_id = $instance . '-tab-' . (int) $m_index;
-      $is_active_panel = ($layout !== 'tabs') || $m_index === 0;
-
-      $article_attrs = array('class="sp-menu__group"', 'id="' . esc_attr($panel_id) . '"');
-      if ($layout === 'tabs') {
-        $article_attrs[] = 'role="tabpanel"';
-        $article_attrs[] = 'aria-labelledby="' . esc_attr($tab_id) . '"';
-        if (!$is_active_panel) {
-          $article_attrs[] = 'hidden';
-        }
-      }
-      ?>
-      <div <?php echo implode(' ', $article_attrs); ?>>
+$render_menu = static function ($menu, $menu_heading, $panel_id) use ($view, $cat_display, $expanded, $show_prices, $highlights_lookup, $labels_visibility, $nutrition_visibility) {
+  $currency = $menu['currency'] ?? ($view['currency'] ?? 'USD');
+  ?>
         <h2 class="sp-menu__title"><?php echo esc_html($menu_heading); ?></h2>
 
         <?php if (!empty($menu['categories'])): ?>
@@ -180,81 +171,41 @@ $menu_count = count($menus);
         <?php if (!empty($menu['footnote'])): ?>
           <p class="sp-menu__footnote"><small><?php echo wp_kses_post($menu['footnote']); ?></small></p>
         <?php endif; ?>
+  <?php
+};
 
-      </div>
-    <?php endforeach; ?>
-  <?php else: ?>
+$choices = $view['choices'] ?? array_map(static function ($menu) {
+  return array('label' => '', 'menus' => array($menu));
+}, $menus);
+$labels = array_map(static function ($choice) use ($heading) {
+  return $choice['label'] !== '' ? $choice['label'] : $heading($choice['menus'][0]);
+}, $choices);
+$tabs = $layout === 'tabs';
+?>
+<section <?php echo $attrs; ?>>
+  <?php if ($tabs && $choices): ?>
+    <?php $render_tabs($labels, $instance, __('Menu selection', 'sp-menu')); ?>
+  <?php endif; ?>
+
+  <?php foreach ($choices as $index => $choice): ?>
+    <?php $panel_id = $instance . '-panel-' . $index; ?>
+    <div <?php echo $panel_attributes($instance, $index, $tabs); ?>>
+      <?php if (count($choice['menus']) > 1): ?>
+        <?php
+        $member_labels = array_map($heading, $choice['menus']);
+        $render_tabs($member_labels, $panel_id, $labels[$index], ' sp-menu__tabs--members');
+        ?>
+        <?php foreach ($choice['menus'] as $member_index => $menu): ?>
+          <div <?php echo $panel_attributes($panel_id, $member_index, true); ?>>
+            <?php $render_menu($menu, $member_labels[$member_index], $panel_id . '-panel-' . $member_index); ?>
+          </div>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <?php $render_menu($choice['menus'][0], $labels[$index], $panel_id); ?>
+      <?php endif; ?>
+    </div>
+  <?php endforeach; ?>
+  <?php if (!$choices): ?>
     <p class="sp-menu__empty"><?php echo esc_html__('No menus available', 'sp-menu'); ?></p>
   <?php endif; ?>
 </section>
-<script>
-  (function () {
-    var root = document.currentScript && document.currentScript.previousElementSibling;
-    if (!root) return;
-
-    if (root.classList.contains('sp-menu--layout-tabs')) {
-      var tabs = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
-      var panels = Array.prototype.slice.call(root.querySelectorAll('[role="tabpanel"]'));
-      if (tabs.length && panels.length) {
-        var activate = function (tab) {
-          var targetId = tab.getAttribute('data-sp-menu-target');
-          tabs.forEach(function (t) {
-            var selected = t === tab;
-            t.setAttribute('aria-selected', selected ? 'true' : 'false');
-            t.setAttribute('tabindex', selected ? '0' : '-1');
-          });
-          panels.forEach(function (panel) {
-            if (panel.id === targetId) {
-              panel.removeAttribute('hidden');
-            } else {
-              panel.setAttribute('hidden', '');
-            }
-          });
-        };
-
-        root.addEventListener('click', function (e) {
-          var tab = e.target.closest('[role="tab"]');
-          if (!tab || !root.contains(tab)) return;
-          e.preventDefault();
-          activate(tab);
-          tab.focus();
-        });
-
-        root.addEventListener('keydown', function (e) {
-          var tab = e.target.closest('[role="tab"]');
-          if (!tab || !root.contains(tab)) return;
-          var index = tabs.indexOf(tab);
-          if (index === -1) return;
-          var nextIndex = null;
-          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-            nextIndex = (index + 1) % tabs.length;
-          } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-            nextIndex = (index - 1 + tabs.length) % tabs.length;
-          } else if (e.key === 'Home') {
-            nextIndex = 0;
-          } else if (e.key === 'End') {
-            nextIndex = tabs.length - 1;
-          }
-          if (nextIndex !== null) {
-            e.preventDefault();
-            var nextTab = tabs[nextIndex];
-            activate(nextTab);
-            nextTab.focus();
-          }
-        });
-      }
-    }
-
-    if (root.classList.contains('sp-menu--cat-accordion')) {
-      root.addEventListener('click', function (e) {
-        var btn = e.target.closest('.sp-menu__toggle');
-        if (!btn) return;
-        var id = btn.getAttribute('aria-controls');
-        var panel = root.querySelector('#' + id);
-        var expanded = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        if (expanded) { panel.setAttribute('hidden', ''); } else { panel.removeAttribute('hidden'); }
-      });
-    }
-  })();
-</script>

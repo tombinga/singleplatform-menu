@@ -55,7 +55,8 @@ class Rest
         }
 
         $menus = null;
-        if (Settings::use_snapshot()) {
+        $use_snapshot = !Settings::use_fixture() && Settings::use_snapshot();
+        if ($use_snapshot) {
             $ttl_snap = Settings::snapshot_ttl();
             if (Snapshot::is_stale($location_id, $ttl_snap)) {
                 Snapshot::sync_once($location_id);
@@ -65,7 +66,7 @@ class Rest
 
         if ($menus === null) {
             $menus = Client::get_menus($location_id);
-            if (!is_wp_error($menus) && Settings::use_snapshot()) {
+            if (!is_wp_error($menus) && $use_snapshot) {
                 Snapshot::upsert($location_id, array('code' => 200, 'data' => array('menus' => $menus)), null, 'ok', '');
             }
         }
@@ -80,9 +81,20 @@ class Rest
         $formatted_data = array(
             'categories' => array(),
             'items' => array(),
+            'menus' => array(),
         );
         $seen_categories = array();
+        $seen_menus = array();
         foreach ($menus as $menu) {
+            if (!is_array($menu)) {
+                continue;
+            }
+            $id = menu_id($menu['id'] ?? null);
+            if ($id !== '' && !isset($seen_menus[$id])) {
+                $name = is_string($menu['name'] ?? null) ? sanitize_text_field($menu['name']) : '';
+                $formatted_data['menus'][] = array('id' => $id, 'name' => $name !== '' ? $name : $id);
+                $seen_menus[$id] = true;
+            }
             if (!isset($menu['sections']) || !is_array($menu['sections']))
                 continue;
 

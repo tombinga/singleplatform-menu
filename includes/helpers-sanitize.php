@@ -1,6 +1,10 @@
 <?php
 namespace PRG\SinglePlatform;
 
+function menu_id($value) {
+    return is_int($value) || is_string($value) ? trim((string) $value) : '';
+}
+
 if (!defined('ABSPATH')) { exit; }
 
 function format_price($number, $currency) {

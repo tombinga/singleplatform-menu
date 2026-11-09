@@ -4,24 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.5.0] - 2026-05-12
+## [0.5.0-beta.1]
 
 ### Added
 
 - Added a native Gutenberg dynamic block implementation for the SinglePlatform menu block, including `block.json`, editor controls, generated build assets, and server-side rendering via `register_block_type()`.
 - Added Gutenberg block support for highlighting selected menu items as special, featured, or new.
+- Added opt-in Menu Groups with custom labels, ordered member menus, and keyboard navigation.
 
 ### Changed
 
-- Converted the menu block from an ACF block to a native Gutenberg block and removed the ACF block registration flow.
+- Replaced the ACF block registration with a native Gutenberg block. Existing pages using `acf/prg-singleplatform-menu` require migration to the new block. Test the upgrade on a site copy.
 - Updated block attributes and editor controls to manage Location ID, Menu Name, category filtering, highlighted items, display options, details visibility, and cache TTL directly in the block sidebar.
 - Updated the editor menu endpoint to return category options and grouped item options for Gutenberg controls.
 - Updated the editor menu endpoint to refresh stale snapshots before falling back to live API data.
-- Updated plugin and block metadata versions to `0.5.0`.
 
 ### Fixed
 
 - Restored category filtering in the Gutenberg block render path, cache key generation, and normalization flow.
+- Preserved the last successful snapshot when a refresh fails and kept fixture responses out of the snapshot cache.
 
 ## [0.4.1] - 2025-10-15
 

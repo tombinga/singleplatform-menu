@@ -26,7 +26,7 @@ class Normalizer {
             $views[] = self::menu_to_view($menu, $category_whitelist, $currency_override);
         }
 
-        if (empty($views)) {
+        if (empty($views) && empty($select['omit_empty_menu'])) {
             $views[] = self::empty_menu_view();
         }
 
@@ -104,6 +104,7 @@ class Normalizer {
         return array(
             'locationName' => isset($menu['location_id']) ? sanitize_text_field((string) $menu['location_id']) : '',
             'menuName'     => isset($menu['name']) ? sanitize_text_field((string) $menu['name']) : '',
+            'menuId'       => menu_id($menu['id'] ?? null),
             'categories'   => $categories,
             'footnote'     => isset($menu['footnote']) ? wp_kses_post((string) $menu['footnote']) : '',
             'attribution'  => $attrib,
