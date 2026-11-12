@@ -2,7 +2,7 @@
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
   "name": "prg/singleplatform-menu",
-  "version": "0.5.0-beta.1",
+  "version": "0.5.0",
   "title": "Restaurant Menu (SinglePlatform)",
   "category": "widgets",
   "icon": "food",
